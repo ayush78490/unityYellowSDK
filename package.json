@@ -25,5 +25,14 @@
   ],
   "asmdefReferences": {
     "Runtime": "NitroliteSDK.Runtime"
+  },
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "@erc7824/nitrolite": "^0.3.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.5"
   }
 }

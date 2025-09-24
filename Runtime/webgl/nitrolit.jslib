@@ -4,30 +4,31 @@ mergeInto(LibraryManager.library, {
     window._nitro_inited = true;
 
     try {
-      // Use local bundle instead of CDN
+      // Use correct path relative to the build output
       var nitroliteScript = document.createElement('script');
-      nitroliteScript.src = 'nitrolite.bundle.js';
+      nitroliteScript.src = 'Build/nitrolite.bundle.js';  // Updated path
+      nitroliteScript.type = 'text/javascript';
+      nitroliteScript.async = false;
+      
       nitroliteScript.onload = function() {
-        window.NitroliteSDK = window.NitroLite; // from bundle's globalName
+        window.NitroliteSDK = window.NitroLite;
         console.log('Nitrolite loaded:', !!window.NitroliteSDK);
         
         if (typeof SendMessage === 'function') {
-          var gameObject = UnityInstance.Module.GameObject.Find('NitroliteManager');
-          if (gameObject) {
-            SendMessage('NitroliteManager', 'OnInitComplete', 
-              JSON.stringify({nitrolite: !!window.NitroliteSDK}));
-          } else {
-            console.error('NitroliteManager GameObject not found in scene!');
-          }
+          SendMessage('NitroliteManager', 'OnInitComplete', 
+            JSON.stringify({nitrolite: !!window.NitroliteSDK}));
         }
       };
+
+      nitroliteScript.onerror = function(err) {
+        console.error('Failed to load Nitrolite bundle:', err);
+        SendMessage('NitroliteManager', 'OnWalletError', 'Failed to load Nitrolite bundle');
+      };
       
-      document.body.appendChild(nitroliteScript);
+      document.head.appendChild(nitroliteScript);
     } catch (err) {
       console.error('Nitrolite init failed:', err);
-      if (typeof SendMessage === 'function') {
-        SendMessage('NitroliteManager', 'OnWalletError', 'Failed to load Nitrolite: ' + err.message);
-      }
+      SendMessage('NitroliteManager', 'OnWalletError', 'Failed to initialize: ' + err.message);
     }
   },
 
