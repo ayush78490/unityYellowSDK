@@ -4,7 +4,32 @@
   "version": "1.0.0",
   "unity": "2021.3",
   "description": "Nitrolite + YellowSDK integration for wallet connect & transactions in Unity.",
-  "keywords": [ "wallet", "nitrolite", "yellow-sdk", "blockchain" ],
-  "author": { "name": "Your Name", "email": "you@example.com" },
-  "samples": []
+  "keywords": [
+    "wallet",
+    "nitrolite",
+    "yellow-sdk",
+    "blockchain"
+  ],
+  "author": "Your Name <you@example.com>",
+  "samples": [],
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node build.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayush78490/unityYellowSDK.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ayush78490/unityYellowSDK/issues"
+  },
+  "homepage": "https://github.com/ayush78490/unityYellowSDK#readme",
+  "dependencies": {
+    "@erc7824/nitrolite": "^0.3.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.22.0"
+  }
 }
