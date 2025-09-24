@@ -83,6 +83,7 @@ namespace NitroliteSDK
         [DllImport("__Internal")] private static extern void Nitrolite_HandleChallenge(string challengeJson, string walletClientJson);
         [DllImport("__Internal")] private static extern void Nitrolite_SendRawMessage(string msg);
         [DllImport("__Internal")] private static extern void Nitrolite_SendYellowTx(string txJson);
+        [DllImport("__Internal")] private static extern void Nitrolite_GetChannelId();
 #else
         private static void Nitrolite_Init() { Debug.Log("Nitrolite_Init (editor/native stub)"); }
         private static void Nitrolite_ConnectWallet() { Debug.Log("Nitrolite_ConnectWallet (stub)"); }
@@ -91,6 +92,7 @@ namespace NitroliteSDK
         private static void Nitrolite_HandleChallenge(string challengeJson, string walletClientJson) { Debug.Log("Nitrolite_HandleChallenge (stub)"); }
         private static void Nitrolite_SendRawMessage(string msg) { Debug.Log("Nitrolite_SendRawMessage (stub)"); }
         private static void Nitrolite_SendYellowTx(string txJson) { Debug.Log("Nitrolite_SendYellowTx (stub)"); }
+        private static void Nitrolite_GetChannelId() { Debug.Log("Nitrolite_GetChannelId (stub)"); }
 #endif
 
         void Awake()
@@ -111,12 +113,13 @@ namespace NitroliteSDK
 
         public void ConnectWallet() => Nitrolite_ConnectWallet();
         public void ConnectClearNode(string url) => Nitrolite_ConnectClearNode(url);
-        public void DoAuth(string wallet, string participant, string appAddress, int expireSeconds=3600)
+        public void DoAuth(string wallet, string participant, string appAddress, int expireSeconds = 3600)
             => Nitrolite_DoAuth(wallet, participant, appAddress, expireSeconds);
         public void HandleChallenge(string challengeJson, string walletClientJson)
             => Nitrolite_HandleChallenge(challengeJson, walletClientJson);
         public void SendRawMessage(string msg) => Nitrolite_SendRawMessage(msg);
         public void SendYellowTransaction(string txJson) => Nitrolite_SendYellowTx(txJson);
+        public void GetChannelId() => Nitrolite_GetChannelId();
 
         // ---- Callbacks from JS ----
         public void OnInitComplete(string payloadJson) { Debug.Log("Init: " + payloadJson); }
@@ -131,12 +134,10 @@ namespace NitroliteSDK
 
             try
             {
-                // Parse JSON
-                var data = JsonUtility.FromJson<DictionaryWrapper>(json);
+                var data = DictionaryWrapper.FromJson(json);
 
                 if (data.dict != null)
                 {
-                    // If message contains a Yellow SDK challenge
                     if (data.dict.ContainsKey("auth_challenge"))
                     {
                         string challenge = data.dict["auth_challenge"];
@@ -145,7 +146,6 @@ namespace NitroliteSDK
                         return;
                     }
 
-                    // If message contains a Yellow SDK transaction request
                     if (data.dict.ContainsKey("yellow_tx"))
                     {
                         string txJson = data.dict["yellow_tx"];
@@ -166,7 +166,12 @@ namespace NitroliteSDK
         public void OnAuthRequestSent(string v) { Debug.Log("Auth request sent"); }
         public void OnClearNodeMessageSent(string v) { Debug.Log("Message sent to ClearNode"); }
 
-        // Helper class to deserialize arbitrary JSON dictionaries
+        // New callback for channel ID
+        public void OnChannelId(string channelId)
+        {
+            Debug.Log("Nitrolite Channel ID: " + channelId);
+        }
+
         [Serializable]
         private class DictionaryWrapper
         {
@@ -183,4 +188,5 @@ namespace NitroliteSDK
         }
     }
 }
+
 
