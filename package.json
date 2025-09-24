@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/ayush78490/unityYellowSDK#readme",
   "dependencies": {
-    "@erc7824/nitrolite": "^0.3.0"
+    
   },
   "devDependencies": {
     "esbuild": "^0.22.0"
