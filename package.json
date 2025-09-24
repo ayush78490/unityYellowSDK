@@ -22,5 +22,8 @@
     "editor.meta",
     "package.json",
     "package.json.meta"
-  ]
+  ],
+  "asmdefReferences": {
+    "Runtime": "NitroliteSDK.Runtime"
+  }
 }

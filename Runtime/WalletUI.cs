@@ -1,44 +1,46 @@
 using UnityEngine;
 using UnityEngine.UI;
-using NitroliteSDK;  // Add this namespace reference
 
-public class WalletUI : MonoBehaviour
+namespace NitroliteSDK.Examples
 {
-    public Button connectButton;
-    public Text walletInfoText;
-
-    private NitroliteManager nitroManager;
-
-    void Awake()
+    public class WalletUI : MonoBehaviour
     {
-        nitroManager = FindObjectOfType<NitroliteManager>();
-        if (nitroManager == null)
+        public Button connectButton;
+        public Text walletInfoText;
+
+        private NitroliteManager nitroManager;
+
+        void Awake()
         {
-            Debug.LogError("NitroliteManager not found in scene!");
-            return;
+            nitroManager = FindObjectOfType<NitroliteManager>();
+            if (nitroManager == null)
+            {
+                Debug.LogError("NitroliteManager not found in scene!");
+                return;
+            }
+
+            connectButton.onClick.AddListener(OnConnectWallet);
+
+            // Optional: you can poll PlayerPrefs for wallet if already connected
+            if (PlayerPrefs.HasKey("wallet"))
+            {
+                walletInfoText.text = "Wallet: " + PlayerPrefs.GetString("wallet");
+            }
         }
 
-        connectButton.onClick.AddListener(OnConnectWallet);
-
-        // Optional: you can poll PlayerPrefs for wallet if already connected
-        if (PlayerPrefs.HasKey("wallet"))
+        void OnConnectWallet()
         {
-            walletInfoText.text = "Wallet: " + PlayerPrefs.GetString("wallet");
+            walletInfoText.text = "Connecting wallet...";
+            nitroManager.ConnectWallet();
         }
-    }
 
-    void OnConnectWallet()
-    {
-        walletInfoText.text = "Connecting wallet...";
-        nitroManager.ConnectWallet();
-    }
-
-    void Update()
-    {
-        // Update the wallet address if connected
-        if (PlayerPrefs.HasKey("wallet"))
+        void Update()
         {
-            walletInfoText.text = "Wallet: " + PlayerPrefs.GetString("wallet");
+            // Update the wallet address if connected
+            if (PlayerPrefs.HasKey("wallet"))
+            {
+                walletInfoText.text = "Wallet: " + PlayerPrefs.GetString("wallet");
+            }
         }
     }
 }
