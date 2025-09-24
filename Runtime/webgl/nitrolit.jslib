@@ -472,7 +472,6 @@ mergeInto(LibraryManager.library, {
         }
       }
 
-      // Fallback: send via WebSocket if connected
       if (window._nitro_ws && window._nitro_ws.readyState === WebSocket.OPEN) {
         window._nitro_ws.send(txJson);
         SendMessage('NitroliteManager', 'OnClearNodeMessageSent', 'ok');
@@ -485,6 +484,3 @@ mergeInto(LibraryManager.library, {
     }
   }
 });
-
-// Export function for Unity WebGL linking
-Module['Nitrolite_SendYellowTx'] = LibraryManager.library.Nitrolite_SendYellowTx;

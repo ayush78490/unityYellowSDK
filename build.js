@@ -43,10 +43,9 @@ esbuild.build({
   entryPoints: [inputFile],
   bundle: true,
   minify: true,
-  globalName: "NitroLite",       // exposes NitroLite globally
-  format: "iife",                // important: pure browser global
-  target: ["es6"],               // ensure modern JS
-  outfile: outFile,
+  globalName: "NitroLite",
+  format: "iife",            // browser-friendly IIFE
+  target: ["esnext"],         // <-- key change: allow BigInt literals
   platform: "browser",
 })
 .then(() => {
@@ -62,4 +61,5 @@ esbuild.build({
   console.error("Error bundling NitroLite:", err);
   process.exit(1);
 });
+
 
