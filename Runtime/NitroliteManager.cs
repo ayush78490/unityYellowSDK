@@ -66,6 +66,8 @@
 
 using UnityEngine;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System;
 
 namespace NitroliteSDK
 {
@@ -88,7 +90,7 @@ namespace NitroliteSDK
         private static void Nitrolite_DoAuth(string wallet, string participant, string appAddress, int expireSeconds) { Debug.Log("Nitrolite_DoAuth (stub)"); }
         private static void Nitrolite_HandleChallenge(string challengeJson, string walletClientJson) { Debug.Log("Nitrolite_HandleChallenge (stub)"); }
         private static void Nitrolite_SendRawMessage(string msg) { Debug.Log("Nitrolite_SendRawMessage (stub)"); }
-        private static void Nitrolite_SendYellowTx(string txJson) { Debug.Log("Nitrolite_SendYellowTx (stub): " + txJson); }
+        private static void Nitrolite_SendYellowTx(string txJson) { Debug.Log("Nitrolite_SendYellowTx (stub)"); }
 #endif
 
         void Awake()
@@ -114,8 +116,6 @@ namespace NitroliteSDK
         public void HandleChallenge(string challengeJson, string walletClientJson)
             => Nitrolite_HandleChallenge(challengeJson, walletClientJson);
         public void SendRawMessage(string msg) => Nitrolite_SendRawMessage(msg);
-
-        // New Yellow transaction wrapper
         public void SendYellowTransaction(string txJson) => Nitrolite_SendYellowTx(txJson);
 
         // ---- Callbacks from JS ----
@@ -124,15 +124,63 @@ namespace NitroliteSDK
         public void OnWalletError(string err) { Debug.LogError("WalletError: " + err); }
 
         public void OnClearNodeOpen(string v) { Debug.Log("ClearNode WS open"); }
-        public void OnClearNodeMessage(string json) { Debug.Log("ClearNode msg: " + json); }
+
+        public void OnClearNodeMessage(string json)
+        {
+            Debug.Log("ClearNode msg: " + json);
+
+            try
+            {
+                // Parse JSON
+                var data = JsonUtility.FromJson<DictionaryWrapper>(json);
+
+                if (data.dict != null)
+                {
+                    // If message contains a Yellow SDK challenge
+                    if (data.dict.ContainsKey("auth_challenge"))
+                    {
+                        string challenge = data.dict["auth_challenge"];
+                        string walletClientJson = PlayerPrefs.GetString("walletClientJson", "{}");
+                        HandleChallenge(challenge, walletClientJson);
+                        return;
+                    }
+
+                    // If message contains a Yellow SDK transaction request
+                    if (data.dict.ContainsKey("yellow_tx"))
+                    {
+                        string txJson = data.dict["yellow_tx"];
+                        SendYellowTransaction(txJson);
+                        return;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to parse ClearNode message: " + e);
+            }
+        }
+
         public void OnClearNodeAuthVerifySent(string v) { Debug.Log("Auth verify sent"); }
         public void OnClearNodeAuthError(string e) { Debug.LogError("AuthError: " + e); }
         public void OnClearNodeClose(string code) { Debug.Log("ClearNode WS close: " + code); }
         public void OnAuthRequestSent(string v) { Debug.Log("Auth request sent"); }
         public void OnClearNodeMessageSent(string v) { Debug.Log("Message sent to ClearNode"); }
 
-        // ---- Yellow Tx Callbacks ----
-        public void OnYellowTxSent(string hash) { Debug.Log("Yellow transaction sent: " + hash); }
-        public void OnYellowTxError(string err) { Debug.LogError("YellowTxError: " + err); }
+        // Helper class to deserialize arbitrary JSON dictionaries
+        [Serializable]
+        private class DictionaryWrapper
+        {
+            public Dictionary<string, string> dict;
+
+            public static DictionaryWrapper FromJson(string json)
+            {
+                try
+                {
+                    return JsonUtility.FromJson<DictionaryWrapper>(json);
+                }
+                catch { return new DictionaryWrapper { dict = new Dictionary<string, string>() }; }
+            }
+        }
     }
 }
+
