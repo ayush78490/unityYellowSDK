@@ -46,19 +46,20 @@ public class SimpleWallet : MonoBehaviour
         if (sendMessageButton)
             sendMessageButton.onClick.AddListener(SendChannelMessage);
 
-        // Subscribe to ClearNode events AFTER nitrolite is initialized
-        nitrolite.OnClearNodeOpen += HandleChannelOpen;
-        nitrolite.OnClearNodeMessage += HandleChannelMessage;
-        nitrolite.OnClearNodeClose += HandleChannelClose;
+        // Set ClearNode callback methods AFTER nitrolite is initialized
+        nitrolite.OnClearNodeOpen = HandleChannelOpen;
+        nitrolite.OnClearNodeMessage = HandleChannelMessage;
+        nitrolite.OnClearNodeClose = HandleChannelClose;
     }
 
     void OnDestroy()
     {
         if (nitrolite != null)
         {
-            nitrolite.OnClearNodeOpen -= HandleChannelOpen;
-            nitrolite.OnClearNodeMessage -= HandleChannelMessage;
-            nitrolite.OnClearNodeClose -= HandleChannelClose;
+            // Clear the callback references
+            nitrolite.OnClearNodeOpen = null;
+            nitrolite.OnClearNodeMessage = null;
+            nitrolite.OnClearNodeClose = null;
         }
     }
 
