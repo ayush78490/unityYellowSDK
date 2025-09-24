@@ -5,6 +5,8 @@ namespace NitroliteSDK
 {
     public class NitroliteManager : MonoBehaviour
     {
+        private static NitroliteManager instance;
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern void Nitrolite_Init();
         [DllImport("__Internal")] private static extern void Nitrolite_ConnectWallet();
@@ -21,6 +23,20 @@ namespace NitroliteSDK
         private static void Nitrolite_HandleChallenge(string challengeJson, string walletClientJson) { Debug.Log("Nitrolite_HandleChallenge (stub)"); }
         private static void Nitrolite_SendRawMessage(string msg) { Debug.Log("Nitrolite_SendRawMessage (stub)"); }
 #endif
+
+        void Awake()
+        {
+            if (instance == null)
+            {
+                instance = this;
+                DontDestroyOnLoad(gameObject);
+                gameObject.name = "NitroliteManager"; // Ensure correct name
+            }
+            else if (instance != this)
+            {
+                Destroy(gameObject);
+            }
+        }
 
         void Start() => Nitrolite_Init();
 

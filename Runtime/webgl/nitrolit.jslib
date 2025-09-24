@@ -3,22 +3,32 @@ mergeInto(LibraryManager.library, {
     if (window._nitro_inited) return;
     window._nitro_inited = true;
 
-    // Try to load Nitrolite and (optionally) Yellow SDK from CDN
-    Promise.all([
-      import('https://unpkg.com/@erc7824/nitrolite@latest/dist/index.mjs').catch(e=>{
-        console.error('Nitrolite CDN load failed', e);
-        return null;
-      }),
-      import('https://cdn.jsdelivr.net/npm/yellow-sdk@latest/lib/yellow.js').catch(()=>null)
-    ]).then(([nitroliteModule, yellowModule]) => {
-      window.NitroliteSDK = nitroliteModule ? nitroliteModule : null;
-      window.YellowSDK = yellowModule ? yellowModule : null;
-      console.log('Nitrolite/Yellow loaded', !!window.NitroliteSDK, !!window.YellowSDK);
-      // notify Unity
+    try {
+      // Use local bundle instead of CDN
+      var nitroliteScript = document.createElement('script');
+      nitroliteScript.src = 'nitrolite.bundle.js';
+      nitroliteScript.onload = function() {
+        window.NitroliteSDK = window.NitroLite; // from bundle's globalName
+        console.log('Nitrolite loaded:', !!window.NitroliteSDK);
+        
+        if (typeof SendMessage === 'function') {
+          var gameObject = UnityInstance.Module.GameObject.Find('NitroliteManager');
+          if (gameObject) {
+            SendMessage('NitroliteManager', 'OnInitComplete', 
+              JSON.stringify({nitrolite: !!window.NitroliteSDK}));
+          } else {
+            console.error('NitroliteManager GameObject not found in scene!');
+          }
+        }
+      };
+      
+      document.body.appendChild(nitroliteScript);
+    } catch (err) {
+      console.error('Nitrolite init failed:', err);
       if (typeof SendMessage === 'function') {
-        SendMessage('NitroliteManager', 'OnInitComplete', JSON.stringify({nitrolite: !!window.NitroliteSDK, yellow: !!window.YellowSDK}));
+        SendMessage('NitroliteManager', 'OnWalletError', 'Failed to load Nitrolite: ' + err.message);
       }
-    });
+    }
   },
 
   // CONNECT WALLET (use Nitrolite's login helper or a generic provider)
