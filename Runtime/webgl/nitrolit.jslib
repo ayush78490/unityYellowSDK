@@ -219,14 +219,3 @@ mergeInto(LibraryManager.library, {
     SendMessage('NitroliteManager', 'OnClearNodeError', 'ws_not_open_and_no_provider');
   }
 });
-          .catch(err => { SendMessage('NitroliteManager','OnClearNodeError', err && err.message ? err.message : String(err)); });
-        return;
-      } catch (e) {
-        SendMessage('NitroliteManager','OnClearNodeError','InvalidTxFormat');
-        return;
-      }
-    }
-
-    SendMessage('NitroliteManager','OnClearNodeError','ws_not_open_and_no_provider');
-  }
-});
