@@ -39,6 +39,20 @@ namespace NitroliteSDK.Examples
             nitrolite.ConnectWallet();
         }
 
+        public void OnWalletConnected(string account)
+        {
+            PlayerPrefs.SetString("wallet", account);
+            statusText.SetText("Connected: " + account);
+            Debug.Log("Wallet connected: " + account);
+
+            // Call the channel ID via NitroliteManager
+            if (nitrolite != null)
+            {
+                nitrolite.GetChannelId();
+            }
+        }
+
+
         void SendTransaction()
         {
             string to = recipientAddressInput.text;
