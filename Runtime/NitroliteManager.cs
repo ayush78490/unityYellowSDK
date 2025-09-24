@@ -39,4 +39,7 @@ public class NitroliteManager : MonoBehaviour
     public void OnClearNodeMessage(string json) { Debug.Log("ClearNode msg: " + json); /* parse and if auth_challenge then call HandleChallenge */ }
     public void OnClearNodeAuthVerifySent(string v) { Debug.Log("Auth verify sent"); }
     public void OnClearNodeAuthError(string e) { Debug.LogError("AuthError: " + e); }
+    public void OnClearNodeClose(string code) { Debug.Log("ClearNode WS close: " + code); }
+    public void OnAuthRequestSent(string v) { Debug.Log("Auth request sent"); }
+    public void OnClearNodeMessageSent(string v) { Debug.Log("Message sent to ClearNode"); }
 }

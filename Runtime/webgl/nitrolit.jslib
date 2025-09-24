@@ -37,7 +37,7 @@ mergeInto(LibraryManager.library, {
   // CONNECT TO CLEARNODE (open WS, basic event handlers)
   Nitrolite_ConnectClearNode: function (urlPtr) {
     const url = UTF8ToString(urlPtr);
-    if (!url) { SendMessage('NitroliteManager','OnClearNodeError','InvalidUrl'); return; }
+    if (!url) { SendMessage('NitroliteManager','OnClearNodeAuthError','InvalidUrl'); return; }
     try {
       const ws = new WebSocket(url);
       ws.onopen = () => { window._nitro_ws = ws; SendMessage('NitroliteManager','OnClearNodeOpen','ok'); };
@@ -46,9 +46,9 @@ mergeInto(LibraryManager.library, {
         SendMessage('NitroliteManager','OnClearNodeMessage', e.data);
       };
       ws.onclose = (c) => { SendMessage('NitroliteManager','OnClearNodeClose', String(c.code||0)); };
-      ws.onerror = (err) => { SendMessage('NitroliteManager','OnClearNodeError', String(err && err.message || err)); };
+      ws.onerror = (err) => { SendMessage('NitroliteManager','OnClearNodeAuthError', String(err && err.message || err)); };
     } catch (err) {
-      SendMessage('NitroliteManager','OnClearNodeError', err.message || String(err));
+      SendMessage('NitroliteManager','OnClearNodeAuthError', err.message || String(err));
     }
   },
 

@@ -5,5 +5,6 @@
   "unity": "2021.3",
   "description": "Nitrolite + YellowSDK integration for wallet connect & transactions in Unity.",
   "keywords": [ "wallet", "nitrolite", "yellow-sdk", "blockchain" ],
-  "author": { "name": "Your Name", "email": "you@example.com" }
+  "author": { "name": "Your Name", "email": "you@example.com" },
+  "samples": []
 }
