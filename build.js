@@ -3,7 +3,7 @@ const esbuild = require("esbuild");
 const path = require("path");
 
 const inputFile = path.resolve(__dirname, "node_modules/@erc7824/nitrolite/dist/index.js");
-const outFile = path.resolve(__dirname, "Runtime/WebGL/nitrolite.bundle.js");
+const outFile = path.resolve(__dirname, "Runtime/webgl/nitrolite.bundle.js");
 
 esbuild.build({
   entryPoints: [inputFile],
