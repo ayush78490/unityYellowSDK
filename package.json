@@ -14,5 +14,13 @@
     "name": "Your Name",
     "email": "you@example.com"
   },
-  "samples": []
+  "samples": [],
+  "files": [
+    "Runtime",
+    "Runtime.meta",
+    "editor",
+    "editor.meta",
+    "package.json",
+    "package.json.meta"
+  ]
 }
