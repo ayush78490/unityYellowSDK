@@ -29,6 +29,15 @@ public class SimpleWallet : MonoBehaviour
 
     void Start()
     {
+        // Initialize NitroliteManager first
+        nitrolite = FindObjectOfType<NitroliteManager>();
+        if (nitrolite == null)
+        {
+            // Create NitroliteManager if it doesn't exist
+            GameObject nitroliteGO = new GameObject("NitroliteManager");
+            nitrolite = nitroliteGO.AddComponent<NitroliteManager>();
+        }
+
         // Setup button listeners
         if (connectButton)
             connectButton.onClick.AddListener(ConnectWallet);
@@ -37,7 +46,7 @@ public class SimpleWallet : MonoBehaviour
         if (sendMessageButton)
             sendMessageButton.onClick.AddListener(SendChannelMessage);
 
-        // Subscribe to ClearNode events
+        // Subscribe to ClearNode events AFTER nitrolite is initialized
         nitrolite.OnClearNodeOpen += HandleChannelOpen;
         nitrolite.OnClearNodeMessage += HandleChannelMessage;
         nitrolite.OnClearNodeClose += HandleChannelClose;
@@ -45,7 +54,7 @@ public class SimpleWallet : MonoBehaviour
 
     void OnDestroy()
     {
-        if (nitrolite)
+        if (nitrolite != null)
         {
             nitrolite.OnClearNodeOpen -= HandleChannelOpen;
             nitrolite.OnClearNodeMessage -= HandleChannelMessage;
@@ -56,7 +65,10 @@ public class SimpleWallet : MonoBehaviour
     public void ConnectWallet()
     {
         // Connect wallet logic (existing code)
-        nitrolite.ConnectWallet();
+        if (nitrolite != null)
+        {
+            nitrolite.ConnectWallet();
+        }
     }
 
     public void ConnectToChannel()
@@ -67,13 +79,18 @@ public class SimpleWallet : MonoBehaviour
             return;
         }
 
-        statusText.SetText("Connecting to channel...");
-        nitrolite.ConnectClearNode(clearNodeUrl);
+        if (statusText != null)
+            statusText.text = "Connecting to channel...";
+        
+        if (nitrolite != null)
+        {
+            nitrolite.ConnectClearNode(clearNodeUrl);
+        }
     }
 
     public void SendChannelMessage()
     {
-        if (!isChannelConnected || string.IsNullOrEmpty(messageInput.text))
+        if (!isChannelConnected || string.IsNullOrEmpty(messageInput.text) || nitrolite == null)
             return;
 
         // Create message JSON
@@ -93,7 +110,8 @@ public class SimpleWallet : MonoBehaviour
     private void HandleChannelOpen(string _)
     {
         isChannelConnected = true;
-        statusText.SetText("Channel connected!");
+        if (statusText != null)
+            statusText.text = "Channel connected!";
         Debug.Log("Channel opened");
     }
 
@@ -117,7 +135,8 @@ public class SimpleWallet : MonoBehaviour
     private void HandleChannelClose(string code)
     {
         isChannelConnected = false;
-        statusText.SetText("Channel disconnected");
+        if (statusText != null)
+            statusText.text = "Channel disconnected";
         Debug.Log($"Channel closed with code: {code}");
     }
 
