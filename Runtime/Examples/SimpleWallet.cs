@@ -1,19 +1,30 @@
 using UnityEngine;
 using UnityEngine.UI;
 using NitroliteSDK;
+#if TEXTMESH_PRO
 using TMPro;
+#endif
 
 public class SimpleWallet : MonoBehaviour
 {
     [Header("Wallet Connection")]
     public Button connectButton;
+#if TEXTMESH_PRO
     public TextMeshProUGUI statusText;
+#else
+    public Text statusText;
+#endif
 
     [Header("Channel Message")]
+#if TEXTMESH_PRO
     public TMP_InputField messageInput;
+#else
+    public InputField messageInput;
+#endif
     public Button sendMessageButton;
     public string clearNodeUrl = "wss://erc7824.org/clearnode"; // Example URL - replace with your ClearNode URL
 
+    private NitroliteManager nitrolite;
     private bool isChannelConnected = false;
 
     void Start()
