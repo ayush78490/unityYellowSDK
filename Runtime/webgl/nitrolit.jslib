@@ -3,33 +3,106 @@ mergeInto(LibraryManager.library, {
     if (window._nitro_inited) return;
     window._nitro_inited = true;
 
-    try {
-      // Use correct path relative to the build output
-      var nitroliteScript = document.createElement('script');
-      nitroliteScript.src = 'Build/nitrolite.bundle.js';  // Updated path
-      nitroliteScript.type = 'text/javascript';
-      nitroliteScript.async = false;
-      
-      nitroliteScript.onload = function() {
-        window.NitroliteSDK = window.NitroLite;
-        console.log('Nitrolite loaded:', !!window.NitroliteSDK);
-        
-        if (typeof SendMessage === 'function') {
-          SendMessage('NitroliteManager', 'OnInitComplete', 
-            JSON.stringify({nitrolite: !!window.NitroliteSDK}));
-        }
-      };
+    // Candidate locations relative to the page / build outputs
+    const candidates = [
+      'nitrolite.bundle.js',
+      './nitrolite.bundle.js',
+      'Build/nitrolite.bundle.js',
+      './Build/nitrolite.bundle.js',
+      'TemplateData/nitrolite.bundle.js',
+      './TemplateData/nitrolite.bundle.js',
+      '../nitrolite.bundle.js',
+      '/nitrolite.bundle.js'
+    ];
 
-      nitroliteScript.onerror = function(err) {
-        console.error('Failed to load Nitrolite bundle:', err);
-        SendMessage('NitroliteManager', 'OnWalletError', 'Failed to load Nitrolite bundle');
-      };
-      
-      document.head.appendChild(nitroliteScript);
-    } catch (err) {
-      console.error('Nitrolite init failed:', err);
-      SendMessage('NitroliteManager', 'OnWalletError', 'Failed to initialize: ' + err.message);
+    function sendInitResult(ok, reason) {
+      console.log('Nitrolite load result:', ok, reason || '');
+      if (typeof SendMessage === 'function') {
+        try {
+          SendMessage('NitroliteManager', ok ? 'OnInitComplete' : 'OnWalletError', ok ? JSON.stringify({nitrolite:true}) : (reason || 'NitroliteLoadFailed'));
+        } catch(e) {
+          console.error('SendMessage failed:', e);
+        }
+      }
     }
+
+    async function exists(url) {
+      try {
+        // try HEAD first
+        const head = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+        if (head && head.ok) return true;
+      } catch (e) {
+        // HEAD may be blocked; try GET
+      }
+      try {
+        const res = await fetch(url, { method: 'GET', cache: 'no-cache' });
+        return res && res.ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    (async () => {
+      let found = null;
+      for (let i = 0; i < candidates.length; i++) {
+        const url = candidates[i];
+        try {
+          const ok = await exists(url);
+          if (ok) { found = url; break; }
+        } catch (e) {
+          console.warn('Probe failed for', url, e);
+        }
+      }
+
+      if (!found) {
+        console.error('Nitrolite bundle not found at candidate paths', candidates);
+        // final attempt: try CDN as a fallback (may be CORS-blocked)
+        const cdn = 'https://unpkg.com/@erc7824/nitrolite@latest/dist/index.mjs';
+        try {
+          // Try to dynamically import CDN module (may be blocked by CORS)
+          import(cdn).then(mod => {
+            window.NitroliteSDK = mod;
+            console.log('Nitrolite loaded from CDN', !!window.NitroliteSDK);
+            sendInitResult(true, 'cdn');
+          }).catch(err => {
+            console.error('CDN dynamic import failed', err);
+            sendInitResult(false, 'NotFound');
+          });
+        } catch (e) {
+          console.error('CDN import error', e);
+          sendInitResult(false, 'NotFound');
+        }
+        return;
+      }
+
+      // append script tag for the local bundle
+      try {
+        const script = document.createElement('script');
+        script.src = found;
+        script.type = 'text/javascript';
+        // synchronous insertion to preserve load order
+        script.async = false;
+        script.onload = function () {
+          // NitroLite globalName used by build.js
+          window.NitroliteSDK = window.NitroLite || window.NitroliteSDK || window.Nitrolite;
+          console.log('Nitrolite loaded from', found, !!window.NitroliteSDK);
+          if (!window.NitroliteSDK) {
+            sendInitResult(false, 'Loaded_but_global_not_found');
+          } else {
+            sendInitResult(true, 'local');
+          }
+        };
+        script.onerror = function (err) {
+          console.error('Failed to load Nitrolite bundle at', found, err);
+          sendInitResult(false, 'LoadError');
+        };
+        // prefer head for script insertion
+        (document.head || document.getElementsByTagName('head')[0] || document.documentElement).appendChild(script);
+      } catch (e) {
+        console.error('Script injection failed', e);
+        sendInitResult(false, 'InjectionError');
+      }
+    })();
   },
 
   // CONNECT WALLET (use Nitrolite's login helper or a generic provider)
