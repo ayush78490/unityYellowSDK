@@ -10,26 +10,9 @@
     "yellow-sdk",
     "blockchain"
   ],
-  "author": "Your Name <you@example.com>",
-  "samples": [],
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node build.js"
+  "author": {
+    "name": "Your Name",
+    "email": "you@example.com"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ayush78490/unityYellowSDK.git"
-  },
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/ayush78490/unityYellowSDK/issues"
-  },
-  "homepage": "https://github.com/ayush78490/unityYellowSDK#readme",
-  "dependencies": {
-    
-  },
-  "devDependencies": {
-    "esbuild": "^0.22.0"
-  }
+  "samples": []
 }
