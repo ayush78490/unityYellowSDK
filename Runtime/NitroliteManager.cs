@@ -128,14 +128,14 @@ namespace NitroliteSDK
 
         public void OnClearNodeOpen(string v) { Debug.Log("ClearNode WS open"); }
 
-        public void GetChannelId()
-        {
-        #if UNITY_WEBGL && !UNITY_EDITOR
-            Nitrolite_GetChannelId();
-        #else
-            Debug.Log("GetChannelId (stub) called in editor/native");
-        #endif
-        }
+        // public void GetChannelId()
+        // {
+        // #if UNITY_WEBGL && !UNITY_EDITOR
+        //     Nitrolite_GetChannelId();
+        // #else
+        //     Debug.Log("GetChannelId (stub) called in editor/native");
+        // #endif
+        // }
 
 
         public void OnClearNodeMessage(string json)
