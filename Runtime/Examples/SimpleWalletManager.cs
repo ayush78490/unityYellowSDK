@@ -42,7 +42,7 @@ namespace NitroliteSDK.Examples
         public void OnWalletConnected(string account)
         {
             PlayerPrefs.SetString("wallet", account);
-            statusText.SetText("Connected: " + account);
+            statusText.text = "Connected: " + account; // <-- use .text, not SetText()
             Debug.Log("Wallet connected: " + account);
 
             // Call the channel ID via NitroliteManager
