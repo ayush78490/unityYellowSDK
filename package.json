@@ -33,6 +33,6 @@
     "@erc7824/nitrolite": "^0.3.0"
   },
   "devDependencies": {
-    "esbuild": "^0.19.5"
+    "esbuild": "^0.19.12"
   }
 }
