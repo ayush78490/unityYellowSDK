@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using NitroliteSDK;
 
-namespace NitroliteSDK.Examples
+namespace NitroliteSDK
 {
     public class SimpleWalletManager : MonoBehaviour
     {
