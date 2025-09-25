@@ -74,6 +74,9 @@ namespace NitroliteSDK
     public class NitroliteManager : MonoBehaviour
     {
         private static NitroliteManager instance;
+        
+        // Reference to the SimpleWallet component for callbacks
+        private SimpleWallet simpleWallet;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern void Nitrolite_Init();
@@ -102,6 +105,9 @@ namespace NitroliteSDK
                 instance = this;
                 DontDestroyOnLoad(gameObject);
                 gameObject.name = "NitroliteManager";
+                
+                // Find the SimpleWallet component for callback forwarding
+                simpleWallet = FindObjectOfType<SimpleWallet>();
             }
             else if (instance != this)
             {
@@ -122,21 +128,35 @@ namespace NitroliteSDK
         public void GetChannelId() => Nitrolite_GetChannelId();
 
         // ---- Callbacks from JS ----
-        public void OnInitComplete(string payloadJson) { Debug.Log("Init: " + payloadJson); }
-        public void OnWalletConnected(string account) { PlayerPrefs.SetString("wallet", account); Debug.Log("Wallet: " + account); }
-        public void OnWalletError(string err) { Debug.LogError("WalletError: " + err); }
+        public void OnInitComplete(string payloadJson) 
+        { 
+            Debug.Log("Init: " + payloadJson); 
+        }
+        
+        public void OnWalletConnected(string account) 
+        { 
+            PlayerPrefs.SetString("wallet", account); 
+            Debug.Log("Wallet: " + account);
+            
+            // Forward to SimpleWallet if available
+            if (simpleWallet != null)
+            {
+                simpleWallet.OnWalletConnected(account);
+            }
+        }
+        
+        public void OnWalletError(string err) 
+        { 
+            Debug.LogError("WalletError: " + err);
+            
+            // Forward to SimpleWallet if available
+            if (simpleWallet != null)
+            {
+                simpleWallet.OnWalletError(err);
+            }
+        }
 
         public void OnClearNodeOpen(string v) { Debug.Log("ClearNode WS open"); }
-
-        // public void GetChannelId()
-        // {
-        // #if UNITY_WEBGL && !UNITY_EDITOR
-        //     Nitrolite_GetChannelId();
-        // #else
-        //     Debug.Log("GetChannelId (stub) called in editor/native");
-        // #endif
-        // }
-
 
         public void OnClearNodeMessage(string json)
         {
@@ -176,10 +196,16 @@ namespace NitroliteSDK
         public void OnAuthRequestSent(string v) { Debug.Log("Auth request sent"); }
         public void OnClearNodeMessageSent(string v) { Debug.Log("Message sent to ClearNode"); }
 
-        // New callback for channel ID
+        // Callback for channel ID - forward to SimpleWallet
         public void OnChannelId(string channelId)
         {
             Debug.Log("Nitrolite Channel ID: " + channelId);
+            
+            // Forward to SimpleWallet if available
+            if (simpleWallet != null)
+            {
+                simpleWallet.OnChannelId(channelId);
+            }
         }
 
         [Serializable]
@@ -198,5 +224,3 @@ namespace NitroliteSDK
         }
     }
 }
-
-
