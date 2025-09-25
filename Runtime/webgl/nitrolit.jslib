@@ -1,3 +1,4 @@
+
 mergeInto(LibraryManager.library, {
   Nitrolite_Init: function () {
     if (window._nitro_inited) return;
@@ -191,6 +192,9 @@ mergeInto(LibraryManager.library, {
     SendMessage('NitroliteManager', 'OnClearNodeError', 'ws_not_open_and_no_provider');
   },
 
+  
+
+  // ---------- NEW FUNCTION FOR YELLOW SDK ----------
   Nitrolite_SendYellowTx: function (txJsonPtr) {
     var txJson = UTF8ToString(txJsonPtr);
     try {
@@ -220,29 +224,20 @@ mergeInto(LibraryManager.library, {
     }
   },
 
-  // ---------- CORRECTED GET CHANNEL ID ----------
-  Nitrolite_GetChannelId: function() {
+  // ---------- GET CHANNEL ID ----------
+Nitrolite_GetChannelId: function() {
     try {
         if (window.NitroliteSDK && window._nitro_ws) {
             var channelId = window._nitro_ws.channelId || window._nitro_ws.id || "unknown";
             if (typeof SendMessage === 'function') {
-                // ✅ FIXED: Send to 'NitroliteManager' instead of 'SimpleWallet'
-                SendMessage('NitroliteManager', 'OnChannelId', channelId);
+                SendMessage('SimpleWallet', 'OnChannelId', channelId);
             }
             console.log("Nitrolite Channel ID:", channelId);
         } else {
             console.warn("Nitrolite SDK or WebSocket not ready");
-            // Send error message to NitroliteManager
-            if (typeof SendMessage === 'function') {
-                SendMessage('NitroliteManager', 'OnClearNodeError', 'SDK_or_WS_not_ready_for_channelId');
-            }
         }
     } catch (e) {
         console.error("Error fetching channel ID:", e);
-        // Send error message to NitroliteManager
-        if (typeof SendMessage === 'function') {
-            SendMessage('NitroliteManager', 'OnClearNodeError', 'ChannelIdError: ' + (e.message || e));
-        }
     }
-  }
+}
 });

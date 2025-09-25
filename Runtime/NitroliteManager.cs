@@ -82,18 +82,11 @@ namespace NitroliteSDK
             PlayerPrefs.SetString("wallet", account); 
             Debug.Log("Wallet Connected: " + account);
             
-            // Forward to SimpleWallet (if exists)
+            // Forward to SimpleWallet
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
                 simpleWallet.OnWalletConnected(account);
-            }
-            
-            // Forward to walletManager (if exists)
-            var walletManager = FindObjectOfType<walletManager>();
-            if (walletManager != null)
-            {
-                walletManager.OnWalletConnected(account);
             }
         }
 
@@ -101,18 +94,11 @@ namespace NitroliteSDK
         { 
             Debug.LogError("Wallet Error: " + err);
             
-            // Forward to SimpleWallet (if exists)
+            // Forward to SimpleWallet
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
                 simpleWallet.OnWalletError(err);
-            }
-            
-            // Forward to walletManager (if exists)
-            var walletManager = FindObjectOfType<walletManager>();
-            if (walletManager != null)
-            {
-                walletManager.OnWalletError(err);
             }
         }
 
@@ -120,19 +106,11 @@ namespace NitroliteSDK
         { 
             Debug.Log("Clear Node WebSocket Opened"); 
             
-            // Forward to SimpleWallet (if exists)
+            // Forward to SimpleWallet
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
                 simpleWallet.OnClearNodeConnected();
-            }
-            
-            // Forward to walletManager (if exists)
-            var walletManager = FindObjectOfType<walletManager>();
-            if (walletManager != null && walletManager.GetComponent<MonoBehaviour>().GetType().GetMethod("OnClearNodeConnected") != null)
-            {
-                // Only call if the method exists in walletManager
-                ((dynamic)walletManager).OnClearNodeConnected();
             }
         }
 
@@ -172,18 +150,11 @@ namespace NitroliteSDK
         { 
             Debug.Log("Auth Verify Message Sent"); 
             
-            // Forward to SimpleWallet (if exists and has method)
+            // Consider this as auth completion
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
-                try { simpleWallet.OnAuthComplete(); } catch { /* Method might not exist */ }
-            }
-            
-            // Forward to walletManager (if exists and has method)
-            var walletManager = FindObjectOfType<walletManager>();
-            if (walletManager != null)
-            {
-                try { ((dynamic)walletManager).OnAuthComplete(); } catch { /* Method might not exist */ }
+                simpleWallet.OnAuthComplete();
             }
         }
 
@@ -191,18 +162,11 @@ namespace NitroliteSDK
         { 
             Debug.LogError("Clear Node Auth Error: " + e);
             
-            // Forward to SimpleWallet (if exists)
+            // Forward to SimpleWallet
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
-                try { simpleWallet.OnClearNodeError(e); } catch { /* Method might not exist */ }
-            }
-            
-            // Forward to walletManager (if exists)
-            var walletManager = FindObjectOfType<walletManager>();
-            if (walletManager != null)
-            {
-                try { ((dynamic)walletManager).OnClearNodeError(e); } catch { /* Method might not exist */ }
+                simpleWallet.OnClearNodeError(e);
             }
         }
 
@@ -210,18 +174,11 @@ namespace NitroliteSDK
         { 
             Debug.Log("Clear Node WebSocket Closed: " + code); 
             
-            // Forward to SimpleWallet (if exists)
+            // Forward to SimpleWallet
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
-                try { simpleWallet.OnClearNodeError($"Connection closed: {code}"); } catch { /* Method might not exist */ }
-            }
-            
-            // Forward to walletManager (if exists)  
-            var walletManager = FindObjectOfType<walletManager>();
-            if (walletManager != null)
-            {
-                try { ((dynamic)walletManager).OnClearNodeError($"Connection closed: {code}"); } catch { /* Method might not exist */ }
+                simpleWallet.OnClearNodeError($"Connection closed: {code}");
             }
         }
 
@@ -229,18 +186,11 @@ namespace NitroliteSDK
         { 
             Debug.Log("Auth Request Sent"); 
             
-            // Forward to SimpleWallet (if exists)
+            // Forward to SimpleWallet
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
-                try { simpleWallet.OnAuthRequestSent(); } catch { /* Method might not exist */ }
-            }
-            
-            // Forward to walletManager (if exists)
-            var walletManager = FindObjectOfType<walletManager>();
-            if (walletManager != null)
-            {
-                try { ((dynamic)walletManager).OnAuthRequestSent(); } catch { /* Method might not exist */ }
+                simpleWallet.OnAuthRequestSent();
             }
         }
 
@@ -253,38 +203,11 @@ namespace NitroliteSDK
         {
             Debug.Log("Channel ID Received: " + channelId);
             
-            // Forward to SimpleWallet (if exists)
+            // Forward to SimpleWallet
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
                 simpleWallet.OnChannelId(channelId);
-            }
-            
-            // Forward to walletManager (if exists)
-            var walletManager = FindObjectOfType<walletManager>();
-            if (walletManager != null)
-            {
-                walletManager.OnChannelId(channelId);
-            }
-        }
-
-        // Handle general Clear Node errors
-        public void OnClearNodeError(string error)
-        {
-            Debug.LogError("Clear Node Error: " + error);
-            
-            // Forward to SimpleWallet (if exists)
-            var simpleWallet = FindObjectOfType<SimpleWallet>();
-            if (simpleWallet != null)
-            {
-                try { simpleWallet.OnClearNodeError(error); } catch { /* Method might not exist */ }
-            }
-            
-            // Forward to walletManager (if exists)
-            var walletManager = FindObjectOfType<walletManager>();
-            if (walletManager != null)
-            {
-                try { walletManager.OnWalletError(error); } catch { /* Fallback to OnWalletError if OnClearNodeError doesn't exist */ }
             }
         }
 
