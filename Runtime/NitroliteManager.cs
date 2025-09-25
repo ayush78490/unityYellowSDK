@@ -20,13 +20,28 @@ namespace NitroliteSDK
         [DllImport("__Internal")] private static extern void Nitrolite_GetChannelId();
 #else
         private static void Nitrolite_Init() { Debug.Log("Nitrolite_Init (editor/native stub)"); }
-        private static void Nitrolite_ConnectWallet() { Debug.Log("Nitrolite_ConnectWallet (stub)"); }
-        private static void Nitrolite_ConnectClearNode(string url) { Debug.Log("Nitrolite_ConnectClearNode (stub)"); }
-        private static void Nitrolite_DoAuth(string wallet, string participant, string appAddress, int expireSeconds) { Debug.Log("Nitrolite_DoAuth (stub)"); }
+        private static void Nitrolite_ConnectWallet() { 
+            Debug.Log("Nitrolite_ConnectWallet (stub)");
+            // Simulate wallet connection in editor
+            instance?.OnWalletConnected("0x1234567890123456789012345678901234567890");
+        }
+        private static void Nitrolite_ConnectClearNode(string url) { 
+            Debug.Log($"Nitrolite_ConnectClearNode (stub): {url}");
+            // Simulate clear node connection in editor
+            instance?.OnClearNodeOpen("ok");
+        }
+        private static void Nitrolite_DoAuth(string wallet, string participant, string appAddress, int expireSeconds) { 
+            Debug.Log("Nitrolite_DoAuth (stub)");
+            instance?.OnAuthRequestSent("ok");
+        }
         private static void Nitrolite_HandleChallenge(string challengeJson, string walletClientJson) { Debug.Log("Nitrolite_HandleChallenge (stub)"); }
         private static void Nitrolite_SendRawMessage(string msg) { Debug.Log("Nitrolite_SendRawMessage (stub)"); }
         private static void Nitrolite_SendYellowTx(string txJson) { Debug.Log("Nitrolite_SendYellowTx (stub)"); }
-        private static void Nitrolite_GetChannelId() { Debug.Log("Nitrolite_GetChannelId (stub)"); }
+        private static void Nitrolite_GetChannelId() { 
+            Debug.Log("Nitrolite_GetChannelId (stub)");
+            // Simulate channel ID in editor
+            instance?.OnChannelId("test-channel-123");
+        }
 #endif
 
         void Awake()
@@ -54,30 +69,54 @@ namespace NitroliteSDK
             => Nitrolite_HandleChallenge(challengeJson, walletClientJson);
         public void SendRawMessage(string msg) => Nitrolite_SendRawMessage(msg);
         public void SendYellowTransaction(string txJson) => Nitrolite_SendYellowTx(txJson);
-        
-        // ADD THIS METHOD IF MISSING
         public void GetChannelId() => Nitrolite_GetChannelId();
 
         // ---- Callbacks from JS ----
-        public void OnInitComplete(string payloadJson) { Debug.Log("Init: " + payloadJson); }
-        public void OnWalletConnected(string account) { 
+        public void OnInitComplete(string payloadJson) 
+        { 
+            Debug.Log("Nitrolite Init Complete: " + payloadJson); 
+        }
+
+        public void OnWalletConnected(string account) 
+        { 
             PlayerPrefs.SetString("wallet", account); 
-            Debug.Log("Wallet: " + account);
+            Debug.Log("Wallet Connected: " + account);
             
-            // Notify other scripts about wallet connection
+            // Forward to SimpleWallet
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
                 simpleWallet.OnWalletConnected(account);
             }
         }
-        public void OnWalletError(string err) { Debug.LogError("WalletError: " + err); }
 
-        public void OnClearNodeOpen(string v) { Debug.Log("ClearNode WS open"); }
+        public void OnWalletError(string err) 
+        { 
+            Debug.LogError("Wallet Error: " + err);
+            
+            // Forward to SimpleWallet
+            var simpleWallet = FindObjectOfType<SimpleWallet>();
+            if (simpleWallet != null)
+            {
+                simpleWallet.OnWalletError(err);
+            }
+        }
+
+        public void OnClearNodeOpen(string v) 
+        { 
+            Debug.Log("Clear Node WebSocket Opened"); 
+            
+            // Forward to SimpleWallet
+            var simpleWallet = FindObjectOfType<SimpleWallet>();
+            if (simpleWallet != null)
+            {
+                simpleWallet.OnClearNodeConnected();
+            }
+        }
 
         public void OnClearNodeMessage(string json)
         {
-            Debug.Log("ClearNode msg: " + json);
+            Debug.Log("Clear Node Message: " + json);
 
             try
             {
@@ -103,22 +142,68 @@ namespace NitroliteSDK
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to parse ClearNode message: " + e);
+                Debug.LogError("Failed to parse Clear Node message: " + e);
             }
         }
 
-        public void OnClearNodeAuthVerifySent(string v) { Debug.Log("Auth verify sent"); }
-        public void OnClearNodeAuthError(string e) { Debug.LogError("AuthError: " + e); }
-        public void OnClearNodeClose(string code) { Debug.Log("ClearNode WS close: " + code); }
-        public void OnAuthRequestSent(string v) { Debug.Log("Auth request sent"); }
-        public void OnClearNodeMessageSent(string v) { Debug.Log("Message sent to ClearNode"); }
+        public void OnClearNodeAuthVerifySent(string v) 
+        { 
+            Debug.Log("Auth Verify Message Sent"); 
+            
+            // Consider this as auth completion
+            var simpleWallet = FindObjectOfType<SimpleWallet>();
+            if (simpleWallet != null)
+            {
+                simpleWallet.OnAuthComplete();
+            }
+        }
 
-        // Channel ID callback - this should forward to SimpleWallet
+        public void OnClearNodeAuthError(string e) 
+        { 
+            Debug.LogError("Clear Node Auth Error: " + e);
+            
+            // Forward to SimpleWallet
+            var simpleWallet = FindObjectOfType<SimpleWallet>();
+            if (simpleWallet != null)
+            {
+                simpleWallet.OnClearNodeError(e);
+            }
+        }
+
+        public void OnClearNodeClose(string code) 
+        { 
+            Debug.Log("Clear Node WebSocket Closed: " + code); 
+            
+            // Forward to SimpleWallet
+            var simpleWallet = FindObjectOfType<SimpleWallet>();
+            if (simpleWallet != null)
+            {
+                simpleWallet.OnClearNodeError($"Connection closed: {code}");
+            }
+        }
+
+        public void OnAuthRequestSent(string v) 
+        { 
+            Debug.Log("Auth Request Sent"); 
+            
+            // Forward to SimpleWallet
+            var simpleWallet = FindObjectOfType<SimpleWallet>();
+            if (simpleWallet != null)
+            {
+                simpleWallet.OnAuthRequestSent();
+            }
+        }
+
+        public void OnClearNodeMessageSent(string v) 
+        { 
+            Debug.Log("Message Sent to Clear Node: " + v); 
+        }
+
         public void OnChannelId(string channelId)
         {
-            Debug.Log("Nitrolite Channel ID: " + channelId);
+            Debug.Log("Channel ID Received: " + channelId);
             
-            // Forward to SimpleWallet if it exists
+            // Forward to SimpleWallet
             var simpleWallet = FindObjectOfType<SimpleWallet>();
             if (simpleWallet != null)
             {
