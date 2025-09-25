@@ -1,99 +1,101 @@
 using UnityEngine;
 using UnityEngine.UI;
 using NitroliteSDK;
+using TMPro;
 
-namespace NitroliteSDK
+public class SimpleWallet : MonoBehaviour
 {
-    public class SimpleWalletManager : MonoBehaviour
+    [Header("UI References")]
+    public Button connectButton;
+    public TMP_Text statusText;
+    
+    private NitroliteManager nitrolite;
+    private bool isWalletConnected = false;
+
+    void Start()
     {
-        [Header("UI References")]
-        public Button connectWalletButton;
-        public Button sendTransactionButton;
-        public InputField recipientAddressInput;
-        public InputField amountInput;
-        public Text statusText;
-
-        private NitroliteManager nitrolite;
-        private bool isConnected = false;
-
-        void Start()
+        // Find NitroliteManager in the scene
+        nitrolite = FindObjectOfType<NitroliteManager>();
+        if (nitrolite == null)
         {
-            // Get or create NitroliteManager
-            nitrolite = FindObjectOfType<NitroliteManager>();
-            if (!nitrolite) {
-                Debug.LogError("Add NitroliteManager to scene!");
-                return;
-            }
-
-            // Setup UI listeners
-            connectWalletButton.onClick.AddListener(ConnectWallet);
-            sendTransactionButton.onClick.AddListener(SendTransaction);
-            
-            // Initialize UI state
-            UpdateUIState();
+            Debug.LogError("NitroliteManager not found! Please add a NitroliteManager component to your scene.");
+            statusText.SetText("ERROR: NitroliteManager missing");
+            return;
         }
 
-        void ConnectWallet()
+        // Setup button listener
+        connectButton.onClick.AddListener(ConnectWallet);
+        
+        // Initialize UI
+        UpdateUIState();
+        
+        Debug.Log("SimpleWallet initialized successfully");
+    }
+
+    void ConnectWallet()
+    {
+        if (nitrolite == null)
         {
-            statusText.text = "Connecting wallet...";
-            nitrolite.ConnectWallet();
+            Debug.LogError("NitroliteManager is null!");
+            return;
         }
 
-        public void OnWalletConnected(string account)
-        {
-            PlayerPrefs.SetString("wallet", account);
-            statusText.text = "Connected: " + account; // <-- use .text, not SetText()
-            Debug.Log("Wallet connected: " + account);
+        statusText.SetText("Connecting wallet...");
+        nitrolite.ConnectWallet();
+    }
 
-            // Call the channel ID via NitroliteManager
-            if (nitrolite != null)
-            {
-                nitrolite.GetChannelId();
-            }
+    // This method will be called by NitroliteManager when wallet connects
+    public void OnWalletConnected(string account)
+    {
+        Debug.Log($"SimpleWallet received wallet connection: {account}");
+        
+        PlayerPrefs.SetString("wallet", account);
+        statusText.SetText($"Connected: {account.Substring(0, 8)}...");
+        isWalletConnected = true;
+        
+        UpdateUIState();
+
+        // Request channel ID after successful connection
+        if (nitrolite != null)
+        {
+            Debug.Log("Requesting channel ID...");
+            nitrolite.GetChannelId();
         }
+    }
 
+    // This method will be called by NitroliteManager with the channel ID
+    public void OnChannelId(string channelId)
+    {
+        Debug.Log($"SimpleWallet received channel ID: {channelId}");
+        // You can update UI or store this ID as needed
+        statusText.SetText($"Connected - Channel: {channelId}");
+    }
 
-        void SendTransaction()
+    void UpdateUIState()
+    {
+        string savedWallet = PlayerPrefs.GetString("wallet", "");
+        isWalletConnected = !string.IsNullOrEmpty(savedWallet);
+
+        if (isWalletConnected)
         {
-            string to = recipientAddressInput.text;
-            string amount = amountInput.text;
-
-            if (string.IsNullOrEmpty(to) || string.IsNullOrEmpty(amount))
-            {
-                statusText.text = "Enter valid address and amount";
-                return;
-            }
-
-            // Create and send transaction message
-            string txMsg = $"{{\"type\":\"tx\",\"to\":\"{to}\",\"amount\":\"{amount}\"}}";
-            nitrolite.SendRawMessage(txMsg);
-            statusText.text = "Sending transaction...";
+            connectButton.GetComponentInChildren<TMP_Text>().text = "Connected";
+            connectButton.interactable = false;
+            statusText.SetText($"Connected: {savedWallet.Substring(0, 8)}...");
         }
-
-        void UpdateUIState()
+        else
         {
-            isConnected = PlayerPrefs.HasKey("wallet");
-            sendTransactionButton.interactable = isConnected;
-            
-            if (isConnected)
-            {
-                statusText.text = "Connected: " + PlayerPrefs.GetString("wallet");
-                connectWalletButton.GetComponentInChildren<Text>().text = "Connected";
-            }
-            else
-            {
-                statusText.text = "Not connected";
-                connectWalletButton.GetComponentInChildren<Text>().text = "Connect Wallet";
-            }
+            connectButton.GetComponentInChildren<TMP_Text>().text = "Connect Wallet";
+            connectButton.interactable = true;
+            statusText.SetText("Wallet not connected");
         }
+    }
 
-        void Update()
+    void OnDestroy()
+    {
+        // Clean up button listener
+        if (connectButton != null)
         {
-            // Check for wallet connection changes
-            if (isConnected != PlayerPrefs.HasKey("wallet"))
-            {
-                UpdateUIState();
-            }
+            connectButton.onClick.RemoveListener(ConnectWallet);
         }
     }
 }
